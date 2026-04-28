@@ -1,0 +1,6 @@
+.env
+node_modules/
+.vercel/
+*.log
+test.js
+expose.js

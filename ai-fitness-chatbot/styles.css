@@ -1,0 +1,22 @@
+/* =============================================
+   AI Fitness Chatbot — styles.css
+   Extracted reference. Styles are embedded
+   in index.html for single-file deployment.
+   ============================================= */
+
+/*
+  To use this as a separate stylesheet:
+  1. Add <link rel="stylesheet" href="styles.css"> in index.html <head>
+  2. Remove the <style>...</style> block from index.html
+
+  CSS Variables (defined in :root)
+  --bg, --bg2, --bg3, --bg4, --bg5        — backgrounds
+  --border, --border2, --border3           — borders
+  --text, --text2, --text3, --text4        — text shades
+  --green, --green2, --green3              — accent greens
+  --green-dim, --green-dim2                — green backgrounds
+  --red, --red-dim                         — error states
+  --font, --mono                           — font families
+  --sidebar                                — sidebar width (260px)
+  --r, --r2                                — border radii (10px, 14px)
+*/

@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Fitness Coach</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0a;--bg2:#111;--bg3:#181818;--bg4:#1e1e1e;--bg5:#242424;
+  --border:#252525;--border2:#2e2e2e;--border3:#3a3a3a;
+  --text:#f0f0f0;--text2:#a0a0a0;--text3:#606060;--text4:#404040;
+  --green:#22c55e;--green2:#16a34a;--green3:#0f7a35;--green-dim:#0a1f12;--green-dim2:#0d2d1a;
+  --red:#ef4444;--red-dim:#1a0a0a;
+  --font:'Sora',sans-serif;--mono:'DM Mono',monospace;
+  --sidebar:260px;--r:10px;--r2:14px;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px}
+
+/* ===================== SCROLLBAR ===================== */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border3);border-radius:4px}
+
+/* ===================== PAGE MANAGER ===================== */
+.page{position:fixed;inset:0;z-index:10;transition:opacity .35s,transform .35s}
+.page.hidden{opacity:0;pointer-events:none;transform:translateY(12px)}
+
+/* ===================== LOGIN ===================== */
+#pg-login{
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;
+}
+.login-bg{
+  position:absolute;inset:0;overflow:hidden;pointer-events:none;
+}
+.login-bg::before{
+  content:'';position:absolute;width:600px;height:600px;
+  border-radius:50%;border:1px solid #22c55e18;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+}
+.login-bg::after{
+  content:'';position:absolute;width:900px;height:900px;
+  border-radius:50%;border:1px solid #22c55e0a;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+}
+.login-card{
+  position:relative;z-index:1;
+  width:420px;max-width:calc(100vw - 32px);
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:20px;padding:40px;
+  animation:fadeUp .5s ease both;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:36px}
+.brand-icon{
+  width:44px;height:44px;border-radius:12px;
+  background:var(--green);display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+}
+.brand-name{font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.3px}
+.brand-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.login-title{font-size:26px;font-weight:700;color:var(--text);margin-bottom:6px;letter-spacing:-.5px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:28px;line-height:1.5}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--text3);margin-bottom:7px;text-transform:uppercase;letter-spacing:.06em}
+.field input{
+  width:100%;height:44px;padding:0 14px;
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r);color:var(--text);font-family:var(--font);font-size:14px;
+  outline:none;transition:border-color .2s,background .2s;
+}
+.field input:focus{border-color:var(--green);background:var(--bg4)}
+.field input::placeholder{color:var(--text4)}
+.field-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.field-row label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:0}
+.forgot{font-size:12px;color:var(--green);cursor:pointer;text-decoration:none;transition:opacity .2s}
+.forgot:hover{opacity:.7}
+.err-msg{
+  background:var(--red-dim);border:1px solid #3a1515;
+  border-radius:var(--r);padding:10px 14px;font-size:13px;color:#f87171;
+  margin-bottom:14px;display:none;
+}
+.btn-primary{
+  width:100%;height:46px;border:none;border-radius:var(--r);
+  background:var(--green);color:#fff;font-family:var(--font);
+  font-size:14px;font-weight:700;cursor:pointer;
+  transition:background .2s,transform .1s;margin-top:4px;
+  letter-spacing:.2px;
+}
+.btn-primary:hover{background:var(--green2)}
+.btn-primary:active{transform:scale(.98)}
+.divider{
+  display:flex;align-items:center;gap:12px;margin:22px 0;
+  font-size:11px;color:var(--text4);
+}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border2)}
+.btn-google{
+  width:100%;height:44px;border:1px solid var(--border2);border-radius:var(--r);
+  background:var(--bg3);color:var(--text2);font-family:var(--font);
+  font-size:13px;font-weight:500;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:background .2s,border-color .2s;
+}
+.btn-google:hover{background:var(--bg4);border-color:var(--border3)}
+.btn-google svg{width:18px;height:18px;flex-shrink:0}
+.login-footer{text-align:center;margin-top:22px;font-size:12px;color:var(--text3)}
+.login-footer a{color:var(--green);cursor:pointer;text-decoration:none}
+.login-footer a:hover{text-decoration:underline}
+.password-wrap{position:relative}
+.password-wrap input{padding-right:44px}
+.toggle-pw{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:var(--text4);
+  display:flex;align-items:center;transition:color .2s;
+}
+.toggle-pw:hover{color:var(--text2)}
+.toggle-pw svg{width:16px;height:16px}
+
+/* ===================== APP SHELL ===================== */
+#pg-app{display:flex;height:100vh}
+
+/* ===================== SIDEBAR ===================== */
+.sidebar{
+  width:var(--sidebar);min-width:var(--sidebar);
+  background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;height:100vh;overflow:hidden;
+  transition:width .25s,min-width .25s;
+}
+.sidebar.collapsed{width:0;min-width:0}
+.sidebar-top{padding:14px 12px 6px;flex-shrink:0}
+.btn-new{
+  display:flex;align-items:center;gap:10px;
+  width:100%;padding:10px 12px;border:none;
+  border-radius:var(--r);background:transparent;
+  color:var(--text);font-family:var(--font);font-size:13px;font-weight:500;
+  cursor:pointer;white-space:nowrap;transition:background .15s;
+}
+.btn-new:hover{background:var(--bg3)}
+.btn-new svg{width:16px;height:16px;flex-shrink:0}
+.sidebar-search{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 12px;border-radius:var(--r);cursor:pointer;
+  color:var(--text2);font-size:13px;transition:background .15s;white-space:nowrap;
+}
+.sidebar-search:hover{background:var(--bg3)}
+.sidebar-search svg{width:14px;height:14px;flex-shrink:0}
+.sidebar-nav{padding:4px 12px;display:flex;flex-direction:column;gap:1px}
+.nav-link{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:var(--r);cursor:pointer;
+  color:var(--text2);font-size:13px;white-space:nowrap;
+  transition:background .15s,color .15s;
+}
+.nav-link:hover{background:var(--bg3);color:var(--text)}
+.nav-link.active{background:var(--bg3);color:var(--text)}
+.nav-link svg{width:15px;height:15px;flex-shrink:0}
+.sidebar-label{
+  padding:14px 14px 6px;font-size:10px;font-weight:700;
+  color:var(--text4);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;
+}
+.history{flex:1;overflow-y:auto;padding:0 6px}
+.hist-item{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 10px;border-radius:8px;cursor:pointer;
+  font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;
+  transition:background .15s,color .15s;margin:1px 0;
+}
+.hist-item:hover{background:var(--bg3);color:var(--text)}
+.hist-item.active{background:var(--bg3);color:var(--text)}
+.hist-item svg{width:13px;height:13px;flex-shrink:0;opacity:.5}
+.hist-text{overflow:hidden;text-overflow:ellipsis}
+.sidebar-bottom{
+  padding:10px 12px;border-top:1px solid var(--border);flex-shrink:0;
+}
+.user-row{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:var(--r);cursor:pointer;
+  transition:background .15s;
+}
+.user-row:hover{background:var(--bg3)}
+.avatar{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  background:var(--green-dim2);border:1.5px solid var(--green);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:var(--green);
+}
+.user-details{flex:1;min-width:0}
+.user-name{font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-plan{font-size:10px;color:var(--text3)}
+.btn-logout{
+  background:none;border:none;cursor:pointer;
+  color:var(--text4);padding:4px;border-radius:6px;
+  display:flex;align-items:center;transition:color .2s,background .2s;
+}
+.btn-logout:hover{color:var(--red);background:#1a0a0a}
+.btn-logout svg{width:14px;height:14px}
+
+/* ===================== MAIN ===================== */
+.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;background:var(--bg);min-width:0}
+
+/* ===================== TOPBAR ===================== */
+.topbar{
+  height:54px;padding:0 20px;
+  display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.btn-toggle{
+  width:32px;height:32px;border-radius:var(--r);border:none;
+  background:transparent;color:var(--text2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,color .15s;flex-shrink:0;
+}
+.btn-toggle:hover{background:var(--bg3);color:var(--text)}
+.btn-toggle svg{width:16px;height:16px}
+.model-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 12px;border:none;border-radius:var(--r);
+  background:transparent;color:var(--text);font-family:var(--font);
+  font-size:14px;font-weight:700;cursor:pointer;letter-spacing:-.2px;
+  transition:background .15s;
+}
+.model-btn:hover{background:var(--bg3)}
+.model-btn svg{width:13px;height:13px;color:var(--text3)}
+.status-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 6px var(--green);flex-shrink:0;
+}
+.topbar-right{margin-left:auto;display:flex;gap:6px;align-items:center}
+.icon-btn{
+  width:32px;height:32px;border-radius:var(--r);border:none;
+  background:transparent;color:var(--text2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,color .15s;
+}
+.icon-btn:hover{background:var(--bg3);color:var(--text)}
+.icon-btn svg{width:15px;height:15px}
+
+/* ===================== CHAT AREA ===================== */
+.chat-area{flex:1;overflow-y:auto;scroll-behavior:smooth}
+
+/* ===================== WELCOME ===================== */
+.welcome{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;min-height:100%;
+  padding:40px 24px;text-align:center;
+}
+.welcome-icon{
+  width:72px;height:72px;border-radius:20px;
+  background:var(--green-dim2);border:1px solid #22c55e30;
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;margin-bottom:22px;
+  animation:pulse 3s infinite;
+}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 #22c55e20}50%{box-shadow:0 0 0 12px #22c55e00}}
+.welcome h2{font-size:28px;font-weight:700;color:var(--text);margin-bottom:10px;letter-spacing:-.5px}
+.welcome p{color:var(--text2);font-size:14px;max-width:460px;line-height:1.7;margin-bottom:32px}
+.quick-grid{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:620px}
+.quick-chip{
+  padding:9px 16px;border-radius:20px;
+  background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text2);font-family:var(--font);font-size:12px;
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+  display:flex;align-items:center;gap:6px;
+}
+.quick-chip:hover{background:var(--bg4);color:var(--text);border-color:var(--green3);transform:translateY(-1px)}
+.quick-chip span{font-size:14px}
+
+/* ===================== MESSAGES ===================== */
+.messages{padding:16px 0;display:flex;flex-direction:column}
+.msg-row{
+  padding:10px 20px;display:flex;gap:14px;
+  max-width:900px;margin:0 auto;width:100%;
+  animation:msgIn .25s ease both;
+}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.msg-av{
+  width:30px;height:30px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;margin-top:2px;
+}
+.msg-row.user .msg-av{background:var(--green-dim2);border:1px solid #22c55e40;color:var(--green);font-size:13px}
+.msg-row.bot .msg-av{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:16px}
+.msg-body{flex:1;min-width:0}
+.msg-sender{font-size:12px;font-weight:700;margin-bottom:6px;color:var(--text);letter-spacing:.1px}
+.msg-text{font-size:13.5px;line-height:1.75;color:var(--text2)}
+.msg-text p{margin-bottom:10px}
+.msg-text p:last-child{margin-bottom:0}
+.msg-text strong{color:var(--text);font-weight:600}
+.msg-text em{color:var(--text2);font-style:italic}
+.msg-text ul,.msg-text ol{padding-left:22px;margin:8px 0}
+.msg-text li{margin-bottom:5px;color:var(--text2)}
+.msg-text code{
+  background:var(--bg4);border:1px solid var(--border2);
+  border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:12px;color:var(--green)
+}
+.msg-text pre{
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r);padding:14px 16px;overflow-x:auto;margin:10px 0;
+}
+.msg-text pre code{background:none;border:none;padding:0;font-size:12px;color:#a8e6c0}
+.msg-text h3{font-size:14px;font-weight:700;color:var(--text);margin:14px 0 6px}
+.msg-text blockquote{
+  border-left:3px solid var(--green3);padding:8px 14px;
+  background:var(--green-dim);border-radius:0 8px 8px 0;margin:8px 0;
+  font-size:13px;color:var(--text2);
+}
+.msg-actions{
+  display:flex;gap:4px;margin-top:8px;
+}
+.act-btn{
+  padding:4px 8px;border-radius:6px;border:none;
+  background:transparent;color:var(--text4);
+  font-family:var(--font);font-size:11px;cursor:pointer;
+  display:flex;align-items:center;gap:4px;
+  transition:background .15s,color .15s;
+}
+.act-btn:hover{background:var(--bg3);color:var(--text2)}
+.act-btn svg{width:12px;height:12px}
+.typing{display:flex;gap:5px;align-items:center;padding:4px 0}
+.dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--text3);animation:blink 1.4s infinite;
+}
+.dot:nth-child(2){animation-delay:.25s}
+.dot:nth-child(3){animation-delay:.5s}
+@keyframes blink{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+
+/* ===================== INPUT ===================== */
+.input-wrap{padding:12px 20px 18px;flex-shrink:0}
+.input-box{
+  max-width:900px;margin:0 auto;
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:12px 14px 10px;
+  transition:border-color .2s;
+}
+.input-box:focus-within{border-color:var(--border3)}
+.input-box textarea{
+  width:100%;background:none;border:none;outline:none;
+  color:var(--text);font-family:var(--font);font-size:13.5px;
+  resize:none;max-height:180px;overflow-y:auto;line-height:1.65;
+  min-height:22px;
+}
+.input-box textarea::placeholder{color:var(--text4)}
+.input-bar{
+  display:flex;align-items:center;gap:6px;margin-top:8px;
+  border-top:1px solid var(--border);padding-top:8px;
+}
+.chip-row{display:flex;gap:5px;flex:1;overflow-x:auto;scrollbar-width:none}
+.chip-row::-webkit-scrollbar{display:none}
+.input-chip{
+  padding:4px 10px;border-radius:16px;
+  background:transparent;border:1px solid var(--border);
+  color:var(--text3);font-family:var(--font);font-size:11px;
+  cursor:pointer;white-space:nowrap;
+  display:flex;align-items:center;gap:5px;
+  transition:all .15s;flex-shrink:0;
+}
+.input-chip:hover{border-color:var(--border3);color:var(--text2)}
+.input-chip svg{width:11px;height:11px}
+.attach-btn{
+  width:28px;height:28px;border-radius:7px;border:none;
+  background:transparent;color:var(--text3);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,color .15s;flex-shrink:0;
+}
+.attach-btn:hover{background:var(--bg4);color:var(--text2)}
+.attach-btn svg{width:14px;height:14px}
+.send-btn{
+  width:34px;height:34px;border-radius:9px;border:none;
+  background:var(--green);color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s,transform .1s;flex-shrink:0;
+}
+.send-btn:hover{background:var(--green2)}
+.send-btn:active{transform:scale(.94)}
+.send-btn:disabled{background:var(--bg4);color:var(--text4);cursor:default}
+.send-btn svg{width:15px;height:15px}
+.input-hint{
+  text-align:center;font-size:10px;color:var(--text4);
+  margin-top:8px;max-width:900px;margin-left:auto;margin-right:auto;
+}
+
+/* ===================== SETTINGS PANEL ===================== */
+.settings-panel{
+  position:absolute;right:16px;top:60px;width:280px;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:6px;z-index:50;
+  animation:dropIn .2s ease;box-shadow:0 8px 32px rgba(0,0,0,.5);
+}
+@keyframes dropIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.settings-panel.hidden{display:none}
+.set-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:8px;cursor:pointer;
+  font-size:12px;color:var(--text2);transition:background .15s,color .15s;
+}
+.set-item:hover{background:var(--bg3);color:var(--text)}
+.set-item svg{width:14px;height:14px;flex-shrink:0}
+.set-divider{height:1px;background:var(--border);margin:4px 0}
+.set-item.danger{color:#ef4444}
+.set-item.danger:hover{background:#1a0a0a;color:#f87171}
+
+/* ===================== WORKOUT PLAN UI ===================== */
+.workout-view{
+  flex:1;overflow-y:auto;padding:40px 24px;
+  display:none;flex-direction:column;align-items:center;
+}
+.workout-view.active{display:flex}
+.wk-card{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:20px;padding:36px;width:100%;max-width:600px;
+  animation:fadeUp .4s ease;
+}
+.wk-header{text-align:center;margin-bottom:30px}
+.wk-header h2{font-size:24px;font-weight:700;color:var(--text);margin-bottom:8px}
+.wk-header p{font-size:14px;color:var(--text2);line-height:1.6}
+.wk-field{margin-bottom:20px;text-align:left;}
+.wk-field label{display:block;font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase}
+.wk-select{
+  width:100%;height:48px;padding:0 16px;
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:12px;color:var(--text);font-family:var(--font);font-size:14px;
+  outline:none;cursor:pointer;appearance:none;
+}
+.wk-select:focus{border-color:var(--green)}
+.wk-btn{
+  width:100%;height:52px;background:var(--green);color:#fff;
+  border:none;border-radius:12px;font-family:var(--font);font-size:15px;font-weight:700;
+  cursor:pointer;margin-top:10px;transition:background .2s,transform .1s;
+}
+.wk-btn:hover{background:var(--green2)}
+.wk-btn:active{transform:scale(.98)}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN PAGE ================= -->
+<div class="page" id="pg-login">
+  <div class="login-bg"></div>
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-icon">💪</div>
+      <div>
+        <div class="brand-name">AI Fitness Coach</div>
+        <div class="brand-sub">Your personal training AI</div>
+      </div>
+    </div>
+    <div class="login-title">Welcome back</div>
+    <div class="login-sub">Sign in to continue your fitness journey and reach your goals.</div>
+    <div class="err-msg" id="login-err">Invalid credentials. Please try again.</div>
+    <div class="field">
+      <label>Email address</label>
+      <input type="email" id="f-email" placeholder="you@example.com" value="user@fitness.ai"/>
+    </div>
+    <div class="field">
+      <div class="field-row">
+        <label>Password</label>
+        <a class="forgot">Forgot password?</a>
+      </div>
+      <div class="password-wrap">
+        <input type="password" id="f-pass" placeholder="Enter your password" value="password123"/>
+        <button class="toggle-pw" onclick="togglePw()" type="button" id="pw-toggle">
+          <svg id="pw-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Sign in →</button>
+    <div class="divider">or continue with</div>
+    <button class="btn-google" onclick="doLogin()">
+      <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+    <div class="login-footer">Don't have an account? <a onclick="doLogin()">Sign up free</a></div>
+  </div>
+</div>
+
+<!-- ================= MAIN APP ================= -->
+<div class="page hidden" id="pg-app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <button class="btn-new" onclick="newChat()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        New chat
+      </button>
+      <div class="sidebar-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Search chats
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-link active" onclick="newChat()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Chat
+      </div>
+      <div class="nav-link" onclick="showWorkoutPlans()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5h11M6.5 12h11M6.5 17.5h11"/><rect x="2" y="3" width="4" height="18" rx="1"/><rect x="18" y="3" width="4" height="18" rx="1"/></svg>
+        Workout Plans
+      </div>
+      <div class="nav-link" onclick="showNotImpl('Nutrition Tracker')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a9 9 0 0 1 9 9c0 3.18-1.7 6-4.5 7.74V21a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-2.26C4.7 17 3 14.18 3 11a9 9 0 0 1 9-9z"/></svg>
+        Nutrition
+      </div>
+      <div class="nav-link" onclick="showNotImpl('Progress Tracker')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Progress
+      </div>
+    </div>
+    <div class="sidebar-label">Recents</div>
+    <div class="history" id="history">
+      <div class="hist-item active" onclick="loadSample(0)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="hist-text">Muscle Building Routine</span>
+      </div>
+      <div class="hist-item" onclick="loadSample(1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="hist-text">HIIT Cardio Plan</span>
+      </div>
+      <div class="hist-item" onclick="loadSample(2)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="hist-text">Weight Loss Strategy</span>
+      </div>
+      <div class="hist-item" onclick="loadSample(3)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="hist-text">Protein Intake Guide</span>
+      </div>
+      <div class="hist-item" onclick="loadSample(4)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="hist-text">Stretching Routine</span>
+      </div>
+      <div class="hist-item" onclick="loadSample(5)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="hist-text">Running for Beginners</span>
+      </div>
+      <div class="hist-item" onclick="loadSample(6)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="hist-text">Body Recomposition Tips</span>
+      </div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-row">
+        <div class="avatar" id="sb-avatar">U</div>
+        <div class="user-details">
+          <div class="user-name" id="sb-name">Fitness User</div>
+          <div class="user-plan">Pro Plan · Active</div>
+        </div>
+        <button class="btn-logout" onclick="logout()" title="Sign out">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <button class="btn-toggle" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <button class="model-btn">
+        AI Fitness Coach
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="status-dot"></div>
+      <span style="font-size:11px;color:var(--text3)">Online</span>
+      <div class="topbar-right">
+        <button class="icon-btn" onclick="clearChat()" title="Clear chat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+        <button class="icon-btn" onclick="toggleSettings()" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M20 12h1M3 12H2M12 20v1M12 3V2"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- SETTINGS DROPDOWN -->
+    <div class="settings-panel hidden" id="settings-panel">
+      <div class="set-item" onclick="showNotImpl('Profile')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile & Goals
+      </div>
+      <div class="set-item" onclick="showNotImpl('Preferences')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M20 12h1M3 12H2M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41M12 20v1M12 3V2"/></svg>
+        Preferences
+      </div>
+      <div class="set-item" onclick="showNotImpl('Notifications')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Notifications
+      </div>
+      <div class="set-divider"></div>
+      <div class="set-item danger" onclick="logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign out
+      </div>
+    </div>
+
+    <!-- CHAT / WELCOME AREA -->
+    <div class="chat-area" id="chat-area">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">💪</div>
+        <h2>What are you working on?</h2>
+        <p>Your personal AI fitness coach — workouts, nutrition, recovery, goals. Ask me anything to start training smarter.</p>
+        <div class="quick-grid">
+          <div class="quick-chip" onclick="sendQuick('Create a complete beginner workout plan for me')"><span>🏋️</span> Workout plan</div>
+          <div class="quick-chip" onclick="sendQuick('How much protein should I eat daily to build muscle?')"><span>🥗</span> Nutrition tips</div>
+          <div class="quick-chip" onclick="sendQuick('Give me a 20-minute HIIT routine I can do at home')"><span>🔥</span> HIIT routine</div>
+          <div class="quick-chip" onclick="sendQuick('How do I lose fat while building muscle at the same time?')"><span>⚡</span> Body recomp</div>
+          <div class="quick-chip" onclick="sendQuick('What are the best exercises for building a bigger chest?')"><span>💪</span> Chest workout</div>
+          <div class="quick-chip" onclick="sendQuick('Create a 7-day meal plan for weight loss')"><span>🍽️</span> Meal plan</div>
+          <div class="quick-chip" onclick="sendQuick('How do I recover faster after a hard workout?')"><span>😴</span> Recovery tips</div>
+          <div class="quick-chip" onclick="sendQuick('What supplements are worth taking for fitness?')"><span>💊</span> Supplements</div>
+        </div>
+      </div>
+      <div class="messages" id="messages" style="display:none"></div>
+    </div>
+
+    <!-- WORKOUT PLANS VIEW -->
+    <div class="workout-view" id="workout-view">
+      <div class="wk-card">
+        <div class="wk-header">
+          <h2>🏋️ Workout Plan Generator</h2>
+          <p>Tell me your goals, and I'll instantly build a highly optimized, personalized workout program for you.</p>
+        </div>
+        <div class="wk-field">
+          <label>Primary Goal</label>
+          <select id="wk-goal" class="wk-select">
+            <option>Build Muscle & Hypertrophy</option>
+            <option>Lose Fat & Get Lean</option>
+            <option>Improve Endurance & Cardio</option>
+            <option>General Health & Fitness</option>
+          </select>
+        </div>
+        <div class="wk-field">
+          <label>Experience Level</label>
+          <select id="wk-level" class="wk-select">
+            <option>Beginner</option>
+            <option>Intermediate</option>
+            <option>Advanced</option>
+          </select>
+        </div>
+        <div class="wk-field">
+          <label>Equipment Available</label>
+          <select id="wk-equip" class="wk-select">
+            <option>Full Commercial Gym</option>
+            <option>Home Gym (Dumbbells/Bands)</option>
+            <option>Bodyweight Only (No Equipment)</option>
+          </select>
+        </div>
+        <div class="wk-field">
+          <label>Days Per Week</label>
+          <select id="wk-days" class="wk-select">
+            <option>3 Days / Week</option>
+            <option>4 Days / Week</option>
+            <option>5 Days / Week</option>
+            <option>6 Days / Week</option>
+          </select>
+        </div>
+        <button class="wk-btn" onclick="generateWorkoutPlan()">Generate Custom Plan</button>
+      </div>
+    </div>
+    <!-- INPUT -->
+    <div class="input-wrap">
+      <div class="input-box">
+        <textarea id="inp" placeholder="Ask anything about fitness, nutrition, workouts, or recovery..." rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <div class="input-bar">
+          <button class="attach-btn" title="Attach file">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <div class="chip-row">
+            <div class="input-chip" onclick="sendQuick('Create an image of a perfect gym setup')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Create an image
+            </div>
+            <div class="input-chip" onclick="sendQuick('Write me a motivational message for my workout today')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Write or edit
+            </div>
+            <div class="input-chip" onclick="sendQuick('Search for the latest research on intermittent fasting')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              Look something up
+            </div>
+            <div class="input-chip" onclick="sendQuick('Analyze my calorie needs based on my activity level')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Analyze data
+            </div>
+          </div>
+          <button class="send-btn" id="send-btn" disabled onclick="sendMessage()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="input-hint">AI Fitness Coach can make mistakes. Always consult a healthcare professional for medical or dietary advice.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SYSTEM = `You are an expert AI Fitness Coach. Your ONLY domain of expertise is fitness, strength training, cardio, nutrition, weight loss, and recovery.
+
+CRITICAL ANTI-HALLUCINATION RULES:
+1. YOU MUST STRICTLY REFUSE to answer any questions outside the scope of fitness, nutrition, and health. If a user asks about programming, math, history, general knowledge, or any non-fitness topic, you must reply: "I am an AI Fitness Coach. I can only assist you with fitness, workouts, and nutrition."
+2. ONLY provide advice based on established scientific consensus. Do not invent exercises, diets, or fake medical information.
+3. If you do not know the answer, clearly state "I don't know." Do not guess.
+4. NEVER provide medical diagnoses or prescribe medication. Always advise consulting a doctor for medical conditions.
+5. Base all calculations (e.g., macros, calories) on standard, verified formulas.
+6. Keep responses focused and concise unless a detailed plan is requested.`;
+
+let msgs = [];
+let busy = false;
+let userInit = 'U';
+let userName = 'User';
+let sidebarOpen = true;
+
+const sampleChats = [
+  [{role:'user',content:'Create a complete muscle building routine for me'},{role:'assistant',content:"Here's a proven 4-day muscle building split:\n\n**Day 1 — Chest & Triceps**\n- Bench Press: 4×8-10\n- Incline Dumbbell Press: 3×10-12\n- Cable Flyes: 3×12-15\n- Tricep Pushdowns: 3×12\n- Overhead Tricep Extension: 3×12\n\n**Day 2 — Back & Biceps**\n- Deadlifts: 4×5\n- Pull-ups: 4×max\n- Barbell Rows: 3×8-10\n- Seated Cable Rows: 3×12\n- Barbell Curls: 3×10\n\n**Day 3 — Rest / Light Cardio**\n\n**Day 4 — Shoulders & Abs**\n- Overhead Press: 4×8\n- Lateral Raises: 3×15\n- Front Raises: 3×12\n- Plank: 3×60s\n- Cable Crunches: 3×15\n\n**Day 5 — Legs**\n- Squats: 4×8\n- Romanian Deadlifts: 3×10\n- Leg Press: 3×12\n- Leg Curls: 3×12\n- Calf Raises: 4×15\n\n**Days 6–7 — Rest**\n\nFor muscle building: eat at a 200-300 calorie surplus, get 1.6-2.2g protein per kg bodyweight, sleep 7-9 hours. Progressive overload is key — add 2.5-5kg every 1-2 weeks."}],
+  [{role:'user',content:'Give me a HIIT cardio plan'},{role:'assistant',content:"Here's a 20-minute home HIIT routine — no equipment needed:\n\n**Warm-up (3 min)**\n- Jumping jacks × 1 min\n- Arm circles + leg swings × 1 min\n- Light jog in place × 1 min\n\n**Main Circuit — 4 rounds (30s on / 15s rest)**\n1. Burpees\n2. Mountain climbers\n3. Jump squats\n4. Push-up to shoulder tap\n5. High knees\n\n**Rest 90 seconds between rounds**\n\n**Cool-down (3 min)**\n- Walking + deep breathing\n- Hip flexor stretch\n- Quad stretch\n\n**Progression:**\n- Week 1-2: 3 rounds\n- Week 3-4: 4 rounds\n- Week 5+: 45s on / 15s rest\n\nDo this 3x/week for best fat burning results. Combine with a slight calorie deficit (300-500 kcal/day) for maximum results."}],
+  [{role:'user',content:'What is the best strategy for weight loss?'},{role:'assistant',content:"The most effective, sustainable weight loss strategy:\n\n**1. Calorie Deficit (Most Important)**\n- Aim for 300-500 kcal deficit daily\n- Track food with an app (MyFitnessPal, Cronometer)\n- Don't go below 1200 kcal (women) / 1500 kcal (men)\n\n**2. High Protein Intake**\n- Target 1.6-2g per kg body weight\n- Preserves muscle mass while losing fat\n- Keeps you fuller longer\n\n**3. Strength Training**\n- 3-4x per week — builds muscle, boosts metabolism\n- More muscle = more calories burned at rest\n\n**4. Cardio (Optional but helpful)**\n- 2-3x cardio per week — creates extra deficit\n- Mix HIIT and steady-state\n\n**5. Sleep & Stress**\n- 7-9 hours sleep — poor sleep increases hunger hormones\n- High stress → high cortisol → fat storage\n\n**Expected rate:** 0.5-1kg per week is sustainable and healthy. Faster is rarely better long-term."}],
+  [{role:'user',content:'How much protein do I need daily?'},{role:'assistant',content:"**Protein targets by goal:**\n\n| Goal | Amount |\n|------|--------|\n| Maintenance | 1.2-1.6g per kg |\n| Muscle building | 1.6-2.2g per kg |\n| Fat loss (preserve muscle) | 2.0-2.4g per kg |\n\n**Example for 75kg person:**\n- Muscle building: 120-165g/day\n- Fat loss: 150-180g/day\n\n**Best protein sources:**\n- Chicken breast (31g/100g)\n- Tuna / salmon (25-28g/100g)\n- Eggs (6g each)\n- Greek yogurt (17g/100g)\n- Cottage cheese (14g/100g)\n- Lentils / beans (9g/100g)\n- Paneer (18g/100g)\n- Whey protein (25g/scoop)\n\n**Tip:** Spread protein across 3-5 meals for optimal muscle protein synthesis. Your body can use roughly 30-40g per meal effectively."}],
+  [{role:'user',content:'Give me a stretching routine for flexibility'},{role:'assistant',content:"Here's a 15-minute full-body stretching routine — do this daily:\n\n**Hold each stretch 30-45 seconds, 2 rounds**\n\n**Lower Body**\n- Hip flexor lunge stretch (each side)\n- Seated hamstring stretch (each side)\n- Pigeon pose (each side)\n- Butterfly stretch (inner thighs)\n- Standing quad stretch\n\n**Upper Body**\n- Doorway chest stretch\n- Cross-body shoulder stretch\n- Overhead tricep stretch\n- Neck side stretch (each side)\n- Thoracic spine rotation\n\n**Full Body**\n- Cat-cow (10 reps)\n- Child's pose\n- World's greatest stretch (5 each side)\n\n**Best times to stretch:**\n- Morning: light dynamic stretching\n- Post-workout: static stretching (like above)\n- Evening: full flexibility session\n\n**Progress:** You'll see significant flexibility gains in 4-6 weeks with daily practice. Never stretch to pain — mild discomfort only."}],
+  [{role:'user',content:'How do I start running as a beginner?'},{role:'assistant',content:"Perfect starting point — the Couch to 5K approach:\n\n**Week 1-2: Walk/Run intervals**\n- 5 min warm-up walk\n- Alternate: 1 min run / 2 min walk × 8 rounds\n- 5 min cool-down walk\n- Total: ~30 minutes, 3x/week\n\n**Week 3-4: Extend running intervals**\n- 1.5 min run / 1.5 min walk × 8 rounds\n\n**Week 5-6: Longer runs**\n- 3 min run / 1 min walk × 6 rounds\n\n**Week 7-8: Continuous running**\n- Try 20-30 min continuous easy run\n\n**Key rules:**\n- **Run at conversation pace** — if you can't talk, slow down\n- Rest days between runs are essential\n- Replace running shoes every 500-800km\n- Warm up and cool down every session\n\n**Common mistakes to avoid:**\n- Going too fast too soon\n- Skipping rest days\n- Ignoring shin/knee pain (stop if this happens)"}],
+  [{role:'user',content:'Explain body recomposition — losing fat and building muscle simultaneously'},{role:'assistant',content:"Body recomposition is absolutely possible, especially for beginners and people returning after a break.\n\n**Who can recomp most effectively:**\n- Complete beginners (\"newbie gains\")\n- People returning after time off\n- Those with higher body fat (>25% men, >30% women)\n- People using steroids (not recommended)\n\n**The strategy:**\n\n**Calories:** Eat at or near maintenance (±100-200 kcal)\n- Small deficit on rest days\n- At/slightly above maintenance on training days\n\n**Protein:** 2.0-2.4g per kg bodyweight\n- Critical for building muscle while in deficit\n\n**Training:** Heavy compound lifting 3-4x/week\n- Squats, deadlifts, bench, rows, overhead press\n- Progressive overload is non-negotiable\n\n**Sleep:** 8+ hours\n- Most muscle growth happens during sleep\n\n**Timeline:** Slower than pure bulking or cutting, but you improve body composition without major weight change. Expect visible results in 8-12 weeks.\n\n**Measure progress:** Use photos + measurements, not just scale weight."}]
+];
+
+function togglePw(){
+  const inp = document.getElementById('f-pass');
+  const isText = inp.type === 'text';
+  inp.type = isText ? 'password' : 'text';
+}
+
+function doLogin(){
+  const email = document.getElementById('f-email').value.trim();
+  const pass = document.getElementById('f-pass').value;
+  if(!email){
+    const e = document.getElementById('login-err');
+    e.textContent = 'Please enter your email address.';
+    e.style.display = 'block';
+    return;
+  }
+  document.getElementById('login-err').style.display = 'none';
+  const name = email.split('@')[0].replace(/[^a-zA-Z0-9]/g,' ');
+  userName = name.charAt(0).toUpperCase() + name.slice(1);
+  userInit = userName.charAt(0).toUpperCase();
+  document.getElementById('sb-name').textContent = userName;
+  document.getElementById('sb-avatar').textContent = userInit;
+  document.getElementById('pg-login').classList.add('hidden');
+  document.getElementById('pg-app').classList.remove('hidden');
+}
+
+function logout(){
+  msgs = [];
+  document.getElementById('pg-login').classList.remove('hidden');
+  document.getElementById('pg-app').classList.add('hidden');
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('messages').style.display = 'none';
+  document.getElementById('welcome').style.display = 'flex';
+  document.getElementById('settings-panel').classList.add('hidden');
+}
+
+function toggleSidebar(){
+  sidebarOpen = !sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('collapsed', !sidebarOpen);
+}
+
+function toggleSettings(){
+  document.getElementById('settings-panel').classList.toggle('hidden');
+}
+
+document.addEventListener('click', e => {
+  const panel = document.getElementById('settings-panel');
+  if(!panel.classList.contains('hidden') && !e.target.closest('#settings-panel') && !e.target.closest('.icon-btn')){
+    panel.classList.add('hidden');
+  }
+});
+
+function showNotImpl(name){
+  alert(name + ' feature coming soon!');
+}
+
+function showWorkoutPlans(){
+  document.getElementById('chat-area').style.display = 'none';
+  document.querySelector('.input-wrap').style.display = 'none';
+  document.getElementById('workout-view').classList.add('active');
+  
+  document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-link')[1].classList.add('active');
+}
+
+function showChatView(){
+  document.getElementById('chat-area').style.display = 'flex';
+  document.querySelector('.input-wrap').style.display = 'block';
+  document.getElementById('workout-view').classList.remove('active');
+  
+  document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-link')[0].classList.add('active');
+}
+
+function generateWorkoutPlan(){
+  const goal = document.getElementById('wk-goal').value;
+  const level = document.getElementById('wk-level').value;
+  const equip = document.getElementById('wk-equip').value;
+  const days = document.getElementById('wk-days').value;
+  
+  const prompt = `Can you create a highly detailed, personalized workout plan for me?
+- **Primary Goal**: ${goal}
+- **Experience Level**: ${level}
+- **Equipment Available**: ${equip}
+- **Availability**: ${days}
+
+Please include a weekly schedule, exact exercises with sets and reps, rest times, and a few key tips for progression and recovery based on my specific goal.`;
+
+  showChatView();
+  newChat();
+  document.getElementById('inp').value = prompt;
+  sendMessage();
+}
+
+function newChat(){
+  msgs = [];
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('messages').style.display = 'none';
+  document.getElementById('welcome').style.display = 'flex';
+  document.querySelectorAll('.hist-item').forEach(i => i.classList.remove('active'));
+  if (typeof showChatView === 'function') showChatView();
+}
+
+function clearChat(){
+  if(msgs.length === 0) return;
+  if(confirm('Clear this conversation?')) newChat();
+}
+
+function loadSample(idx){
+  if (typeof showChatView === 'function') showChatView();
+  const chat = sampleChats[idx];
+  if(!chat) return;
+  msgs = chat.slice();
+  const messagesEl = document.getElementById('messages');
+  messagesEl.innerHTML = '';
+  document.getElementById('welcome').style.display = 'none';
+  messagesEl.style.display = 'flex';
+  chat.forEach(m => renderMsg(m.role === 'user' ? 'user' : 'bot', m.content, false));
+  document.querySelectorAll('.hist-item').forEach((el,i) => el.classList.toggle('active', i === idx));
+}
+
+function sendQuick(text){
+  document.getElementById('inp').value = text;
+  autoResize(document.getElementById('inp'));
+  sendMessage();
+}
+
+function handleKey(e){
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el){
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 180) + 'px';
+  document.getElementById('send-btn').disabled = !el.value.trim();
+}
+
+function formatMd(text){
+  return text
+    .replace(/### (.+)/g,'<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>')
+    .replace(/^\d+\. (.+)$/gm,'<li-o>$1</li-o>')
+    .replace(/^[-•] (.+)$/gm,'<li-u>$1</li-u>')
+    .replace(/(<li-u>.*<\/li-u>(\n|$))+/gs, m => '<ul>' + m.replace(/<li-u>(.*?)<\/li-u>/g,'<li>$1</li>') + '</ul>')
+    .replace(/(<li-o>.*<\/li-o>(\n|$))+/gs, m => '<ol>' + m.replace(/<li-o>(.*?)<\/li-o>/g,'<li>$1</li>') + '</ol>')
+    .replace(/\n\n/g,'</p><p>')
+    .replace(/\n/g,'<br>')
+    .replace(/^(.)/,'<p>$1').replace(/(.)$/,'$1</p>');
+}
+
+function renderMsg(role, content, animate = true){
+  const messagesEl = document.getElementById('messages');
+  document.getElementById('welcome').style.display = 'none';
+  messagesEl.style.display = 'flex';
+
+  const div = document.createElement('div');
+  div.className = `msg-row ${role}`;
+  if(!animate) div.style.animation = 'none';
+
+  const isUser = role === 'user';
+  div.innerHTML = `
+    <div class="msg-av">${isUser ? userInit : '💪'}</div>
+    <div class="msg-body">
+      <div class="msg-sender">${isUser ? userName : 'AI Fitness Coach'}</div>
+      <div class="msg-text">${isUser ? '<p>'+escHtml(content)+'</p>' : formatMd(content)}</div>
+      ${!isUser ? `<div class="msg-actions">
+        <button class="act-btn" onclick="copyMsg(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+        <button class="act-btn" onclick="regenerate()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+          Regenerate
+        </button>
+      </div>` : ''}
+    </div>`;
+  messagesEl.appendChild(div);
+  scrollBottom();
+  return div;
+}
+
+function copyMsg(btn){
+  const text = btn.closest('.msg-body').querySelector('.msg-text').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied`;
+    setTimeout(() => {
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
+    }, 1800);
+  });
+}
+
+function regenerate(){
+  if(msgs.length < 2 || busy) return;
+  msgs.pop();
+  const messagesEl = document.getElementById('messages');
+  const rows = messagesEl.querySelectorAll('.msg-row.bot');
+  if(rows.length) rows[rows.length-1].remove();
+  callAPI();
+}
+
+function escHtml(t){
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showTyping(){
+  const messagesEl = document.getElementById('messages');
+  messagesEl.style.display = 'flex';
+  document.getElementById('welcome').style.display = 'none';
+  const div = document.createElement('div');
+  div.className = 'msg-row bot';
+  div.id = 'typing-row';
+  div.innerHTML = `
+    <div class="msg-av">💪</div>
+    <div class="msg-body">
+      <div class="msg-sender">AI Fitness Coach</div>
+      <div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    </div>`;
+  messagesEl.appendChild(div);
+  scrollBottom();
+}
+
+function removeTyping(){
+  const el = document.getElementById('typing-row');
+  if(el) el.remove();
+}
+
+function scrollBottom(){
+  const ca = document.getElementById('chat-area');
+  ca.scrollTop = ca.scrollHeight;
+}
+
+async function sendMessage(){
+  const inp = document.getElementById('inp');
+  const text = inp.value.trim();
+  if(!text || busy) return;
+
+  inp.value = '';
+  inp.style.height = 'auto';
+  document.getElementById('send-btn').disabled = true;
+  busy = true;
+
+  msgs.push({role:'user', content:text});
+  renderMsg('user', text);
+
+  const histEl = document.getElementById('history');
+  const item = document.createElement('div');
+  item.className = 'hist-item active';
+  item.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;flex-shrink:0;opacity:.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="hist-text">${escHtml(text.slice(0,34)+(text.length>34?'...':''))}</span>`;
+  document.querySelectorAll('.hist-item').forEach(i => i.classList.remove('active'));
+  histEl.insertBefore(item, histEl.firstChild);
+
+  await callAPI();
+}
+
+async function callAPI(){
+  showTyping();
+  try {
+    const res = await fetch('http://localhost:3000/api/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        system: SYSTEM,
+        messages: msgs
+      })
+    });
+    removeTyping();
+    if(!res.ok){
+      const err = await res.json();
+      renderMsg('bot', 'Sorry, I ran into an issue: ' + (err.error?.message || 'API error. Please try again.'));
+    } else {
+      const data = await res.json();
+      const reply = data.choices && data.choices.length > 0 ? data.choices[0].message.content : 'No response from server.';
+      msgs.push({role:'assistant', content:reply});
+      renderMsg('bot', reply);
+    }
+  } catch(e){
+    removeTyping();
+    renderMsg('bot', 'Connection error. Please check your internet and try again.');
+  }
+  busy = false;
+}
+
+document.getElementById('f-email').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('f-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>
