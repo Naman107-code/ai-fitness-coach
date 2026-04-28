@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static('.'));
 
 // API Endpoint for Chat
 app.post('/api/chat', async (req, res) => {
